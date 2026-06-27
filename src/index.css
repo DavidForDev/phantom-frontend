@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+body {
+  margin: 0;
+  background: #000;
+  color: #ededed;
+}
+
+@keyframes phantom-float {
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50% { transform: translateY(-14px) rotate(3deg); }
+}
+
+@keyframes phantom-shadow {
+  0%, 100% { transform: scale(1); opacity: 0.25; }
+  50% { transform: scale(0.65); opacity: 0.1; }
+}
+
+@keyframes phantom-fade {
+  0% { opacity: 0; transform: translateY(6px); }
+  15%, 85% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-6px); }
+}
+
+.phantom-float { animation: phantom-float 2.4s ease-in-out infinite; }
+.phantom-shadow { animation: phantom-shadow 2.4s ease-in-out infinite; }
+.phantom-fade { animation: phantom-fade 2s ease-in-out; }
