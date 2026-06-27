@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import {
-  ShoppingCart,
+  Inbox,
+  Sparkles,
+  MailOpen,
+  Star,
   Search,
-  BarChart3,
-  Tag,
-  Gift,
   MoreHorizontal,
   Bot,
   User,
@@ -27,12 +27,12 @@ import { useVoiceSession } from "./hooks/useVoiceSession";
 const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 const SUGGESTIONS = [
-  { icon: <Search className="h-4 w-4 text-purple-500" />, label: "მოძებნე პროდუქტი" },
-  { icon: <BarChart3 className="h-4 w-4 text-green-500" />, label: "შეადარე ფასები" },
-  { icon: <ShoppingCart className="h-4 w-4 text-orange-500" />, label: "კალათში დამატება" },
-  { icon: <Tag className="h-4 w-4 text-red-500" />, label: "ფასდაკლებები" },
-  { icon: <Gift className="h-4 w-4 text-blue-500" />, label: "რეკომენდაცია" },
-  { icon: <MoreHorizontal className="h-4 w-4 text-gray-500" />, label: "სხვა" },
+  { icon: <Inbox className="h-4 w-4 text-purple-400" />, label: "ბოლო მეილები" },
+  { icon: <Sparkles className="h-4 w-4 text-amber-400" />, label: "შემიჯამე დღევანდელი" },
+  { icon: <MailOpen className="h-4 w-4 text-emerald-400" />, label: "წაუკითხავი" },
+  { icon: <Star className="h-4 w-4 text-yellow-400" />, label: "მნიშვნელოვანი" },
+  { icon: <Search className="h-4 w-4 text-blue-400" />, label: "ძებნა მეილში" },
+  { icon: <MoreHorizontal className="h-4 w-4 text-slate-500" />, label: "სხვა" },
 ];
 
 interface Message {
