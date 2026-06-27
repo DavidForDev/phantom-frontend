@@ -13,16 +13,13 @@ import ChatInput from "./components/ChatInput";
 import ThinkingIndicator from "./components/ThinkingIndicator";
 import PhantomLoader from "./components/PhantomLoader";
 import MarkdownMessage from "./components/MarkdownMessage";
-import { JarvisOrb, type JarvisPaletteValues } from "jarvis-ai-web-animation";
+import SiriOrb from "./components/smoothui/siri-orb";
 
-const PHANTOM_PALETTE: JarvisPaletteValues = {
-  core: 0xf5e8ff,
-  primary: 0xa855f7,
-  secondary: 0x22d3ee,
-  tertiary: 0xec4899,
-  deep: 0x1e0a3c,
-  fallback:
-    "radial-gradient(circle at 50% 50%, #f5e8ff 0%, #a855f7 28%, #6d28d9 55%, #1e0a3c 80%, transparent)",
+const ORB_COLORS = {
+  bg: "oklch(8% 0.05 280)",
+  c1: "oklch(75% 0.20 320)",
+  c2: "oklch(78% 0.16 220)",
+  c3: "oklch(72% 0.20 290)",
 };
 import { useVisitor } from "./hooks/useVisitor";
 import { useVoiceSession } from "./hooks/useVoiceSession";
@@ -213,14 +210,11 @@ function App() {
         {/* Sticky header — small orb appears once chatting starts (text chat only) */}
         {(hasMessages || thinking) && !voiceActive && !historyLoading && (
           <header className="flex items-center gap-3 px-6 pt-5 pb-2">
-            <div style={{ width: 48, height: 48 }}>
-              <JarvisOrb
-                size="avatar"
-                palette={PHANTOM_PALETTE}
-                state={orbActive ? "thinking" : "idle"}
-                breathing
-              />
-            </div>
+            <SiriOrb
+              size="48px"
+              colors={ORB_COLORS}
+              animationDuration={orbActive ? 8 : 20}
+            />
             <div className="leading-tight">
               <div className="text-sm font-semibold text-slate-100">ფანტომი</div>
               <div className="text-[11px] text-slate-400">
@@ -288,16 +282,11 @@ function App() {
         ) : (
           <main className="flex flex-1 flex-col items-center justify-center px-6">
             <div className="mb-8 flex justify-center">
-              <div style={{ width: 340, height: 340 }}>
-                <JarvisOrb
-                  size="hero"
-                  palette={PHANTOM_PALETTE}
-                  state={orbActive ? "thinking" : "idle"}
-                  breathing
-                  breathingIntensity={1.4}
-                  interactive
-                />
-              </div>
+              <SiriOrb
+                size="340px"
+                colors={ORB_COLORS}
+                animationDuration={orbActive ? 10 : 24}
+              />
             </div>
 
             <h2 className="mb-2 text-center text-4xl font-semibold leading-tight text-slate-100 md:text-5xl">
@@ -364,28 +353,45 @@ function VoiceMode({ voice }: { voice: ReturnType<typeof useVoiceSession> }) {
       ? "bg-amber-400"
       : "bg-slate-400";
 
-  // Size grows when connection is ready & a voice level is detected
-  const baseSize = 320;
-  const reactiveSize = baseSize + voice.audioLevel * 90;
+  // Keep the orb's own rotation steady (avoids the jarring flash from
+  // changing animation-duration mid-flight). Instead, breathe via a smooth
+  // scale + halo opacity driven by the user's voice level.
+  const level = voice.audioLevel;
+  const orbScale = 1 + level * 0.12;
+  const haloOpacity = 0.35 + level * 0.55;
+  const haloScale = 1 + level * 0.25;
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center px-6">
-      <div className="mb-10 flex justify-center">
+      <div className="relative mb-10 flex justify-center">
+        {/* Reactive halo — breathes with the user's voice */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 flex items-center justify-center"
+        >
+          <div
+            style={{
+              width: 380,
+              height: 380,
+              opacity: haloOpacity,
+              transform: `scale(${haloScale})`,
+              transition: "opacity 180ms ease-out, transform 180ms ease-out",
+              background:
+                "radial-gradient(circle, rgba(168,85,247,0.55) 0%, rgba(56,189,248,0.30) 35%, rgba(236,72,153,0.18) 55%, transparent 75%)",
+              filter: "blur(28px)",
+              borderRadius: "9999px",
+            }}
+          />
+        </div>
+
+        {/* The orb itself — spins steadily, scales gently with voice */}
         <div
           style={{
-            width: reactiveSize,
-            height: reactiveSize,
-            transition: "width 120ms ease-out, height 120ms ease-out",
+            transform: `scale(${orbScale})`,
+            transition: "transform 180ms ease-out",
           }}
         >
-          <JarvisOrb
-            size="hero"
-            palette={PHANTOM_PALETTE}
-            state="thinking"
-            intensity={0.7 + voice.audioLevel * 1.1}
-            breathing
-            breathingIntensity={1.6}
-          />
+          <SiriOrb size="380px" colors={ORB_COLORS} animationDuration={14} />
         </div>
       </div>
 
