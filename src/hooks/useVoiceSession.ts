@@ -37,7 +37,7 @@ function bytesToBase64(bytes: ArrayBufferLike): string {
   return btoa(bin);
 }
 
-function pcm16ToFloat32(pcm: ArrayBuffer): Float32Array<ArrayBuffer> {
+function pcm16ToFloat32(pcm: ArrayBufferLike): Float32Array<ArrayBuffer> {
   const view = new Int16Array(pcm);
   const out = new Float32Array(view.length);
   for (let i = 0; i < view.length; i++) out[i] = view[i] / 0x8000;
