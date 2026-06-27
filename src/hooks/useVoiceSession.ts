@@ -30,14 +30,14 @@ function base64ToBytes(b64: string): Uint8Array {
   return bytes;
 }
 
-function bytesToBase64(bytes: ArrayBuffer): string {
+function bytesToBase64(bytes: ArrayBufferLike): string {
   const view = new Uint8Array(bytes);
   let bin = "";
   for (let i = 0; i < view.length; i++) bin += String.fromCharCode(view[i]);
   return btoa(bin);
 }
 
-function pcm16ToFloat32(pcm: ArrayBuffer): Float32Array {
+function pcm16ToFloat32(pcm: ArrayBuffer): Float32Array<ArrayBuffer> {
   const view = new Int16Array(pcm);
   const out = new Float32Array(view.length);
   for (let i = 0; i < view.length; i++) out[i] = view[i] / 0x8000;
@@ -191,6 +191,7 @@ export function useVoiceSession({ visitorId, onTurnComplete }: UseVoiceSessionOp
 
           const buf = new Uint8Array(analyser.frequencyBinCount);
           let lastUpdate = 0;
+          let smoothed = 0;
           const tick = (t: number) => {
             const a = analyserRef.current;
             if (!a) return;
@@ -201,9 +202,17 @@ export function useVoiceSession({ visitorId, onTurnComplete }: UseVoiceSessionOp
               sumSq += v * v;
             }
             const rms = Math.sqrt(sumSq / buf.length);
-            // Throttle state updates to ~20fps and amplify a bit so the orb breathes visibly
-            if (t - lastUpdate > 50) {
-              setAudioLevel(Math.min(rms * 4, 1));
+            // Soft compression — moderate speech around 0.3-0.5, loud around 0.7-0.9
+            const compressed = Math.min(Math.pow(rms * 2.4, 0.7), 1);
+            // Asymmetric smoothing: rise fast, fall slow (feels organic, not jittery)
+            const ALPHA_RISE = 0.45;
+            const ALPHA_FALL = 0.12;
+            smoothed +=
+              (compressed - smoothed) *
+              (compressed > smoothed ? ALPHA_RISE : ALPHA_FALL);
+            // Throttle UI updates ~15fps; CSS transitions handle the rest
+            if (t - lastUpdate > 70) {
+              setAudioLevel(smoothed);
               lastUpdate = t;
             }
             levelRafRef.current = requestAnimationFrame(tick);
