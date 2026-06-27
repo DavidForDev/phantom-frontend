@@ -26,13 +26,44 @@ import { useVoiceSession } from "./hooks/useVoiceSession";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
-const SUGGESTIONS = [
-  { icon: <Inbox className="h-4 w-4 text-purple-400" />, label: "ბოლო მეილები" },
-  { icon: <Sparkles className="h-4 w-4 text-amber-400" />, label: "შემიჯამე დღევანდელი" },
-  { icon: <MailOpen className="h-4 w-4 text-emerald-400" />, label: "წაუკითხავი" },
-  { icon: <Star className="h-4 w-4 text-yellow-400" />, label: "მნიშვნელოვანი" },
-  { icon: <Search className="h-4 w-4 text-blue-400" />, label: "ძებნა მეილში" },
-  { icon: <MoreHorizontal className="h-4 w-4 text-slate-500" />, label: "სხვა" },
+interface Suggestion {
+  icon: React.ReactNode;
+  label: string;
+  prompt?: string;
+  fill?: string;
+}
+
+const SUGGESTIONS: Suggestion[] = [
+  {
+    icon: <Inbox className="h-4 w-4 text-purple-400" />,
+    label: "ბოლო მეილები",
+    prompt: "მაჩვენე ბოლო 5 მეილი მოკლედ.",
+  },
+  {
+    icon: <Sparkles className="h-4 w-4 text-amber-400" />,
+    label: "შემიჯამე დღევანდელი",
+    prompt: "შემიჯამე დღევანდელი მეილები — ვინ მომწერა და რა მთავარია.",
+  },
+  {
+    icon: <MailOpen className="h-4 w-4 text-emerald-400" />,
+    label: "წაუკითხავი",
+    prompt: "მაჩვენე წაუკითხავი მეილები.",
+  },
+  {
+    icon: <Star className="h-4 w-4 text-yellow-400" />,
+    label: "მნიშვნელოვანი",
+    prompt: "მაჩვენე მნიშვნელოვანი მეილები.",
+  },
+  {
+    icon: <Search className="h-4 w-4 text-blue-400" />,
+    label: "ძებნა მეილში",
+    fill: "მოძებნე მეილში: ",
+  },
+  {
+    icon: <MoreHorizontal className="h-4 w-4 text-slate-500" />,
+    label: "სხვა",
+    fill: "",
+  },
 ];
 
 interface Message {
@@ -105,8 +136,8 @@ function App() {
     };
   }, [visitorId]);
 
-  const handleSend = useCallback(async () => {
-    const text = input.trim();
+  const handleSend = useCallback(async (overrideText?: string) => {
+    const text = (overrideText ?? input).trim();
     if (!text || thinking) return;
 
     const userMsg: Message = { role: "user", content: text };
@@ -300,7 +331,14 @@ function App() {
               {SUGGESTIONS.map((s) => (
                 <button
                   key={s.label}
-                  className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-slate-300 backdrop-blur-md transition hover:border-purple-400/40 hover:bg-purple-500/10 hover:text-purple-200"
+                  onClick={() => {
+                    if (s.prompt) {
+                      handleSend(s.prompt);
+                    } else if (s.fill !== undefined) {
+                      setInput(s.fill);
+                    }
+                  }}
+                  className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-slate-300 backdrop-blur-md transition hover:border-purple-400/40 hover:bg-purple-500/10 hover:text-purple-200 active:scale-95"
                 >
                   {s.icon}
                   {s.label}
